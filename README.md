@@ -1,28 +1,51 @@
 # Custom Stream Quality for TestCord
 
-An independently written replacement for TestCord's Custom Stream Quality plugin. This repository contains MIT licensed source. TestCord itself has a separate GPL license.
+A TestCord plugin that sets your screen share's resolution, frame rate, bitrate, codec, keyframe interval and HDR capture. It can also show viewers a different resolution and frame rate on the stream badge, for example 8K 360 FPS while you actually stream 1080p 60.
 
-The plugin has separate controls for encoded quality and advertised stream parameters. For example, it can request a 1080p, 60 FPS encode while advertising 8K, 360 FPS in stream parameters. Discord may still show actual or negotiated quality to viewers. The badge display needs a viewer check on each Discord update.
+This is an independent MIT rewrite of TestCord's Custom Stream Quality plugin. It keeps the same plugin name and setting keys, so existing settings carry over.
+
+## What changed from the original
+
+The original's badge spoof had no effect. It edited stream parameters on the local transport, and viewers never receive those. Viewers build the badge from the stream list your client sends to Discord's voice gateway (opcode 12). This version rewrites that message and leaves the local encoder on your real settings.
+
+The other options also moved off hooks that current Discord no longer calls. Checked against Discord Stable and PTB web build 620157 on 2026-09-25.
+
+## Options
+
+| Setting | Effect |
+| --- | --- |
+| Frame rate, resolution, bitrate | Real encoder settings. Each has its own on/off toggle. |
+| Codec | Forces H264, H265, VP8, VP9 or AV1 from your next stream if the voice server offers it. Viewers whose client cannot decode it see no video. |
+| Keyframe interval | Milliseconds between keyframes. Zero uses the encoder default. |
+| HDR | Requests HDR capture from your next screen share. |
+| Spoof badge | Resolution and frame rate shown to viewers and on your own stream tile. Real encoding does not change. |
+
+Changes to anything except codec and HDR apply to a stream that is already live.
+
+The plugin also unlocks Discord's own high quality stream presets without Nitro. Discord's servers can still limit what they relay.
 
 ## Install
 
-1. Back up `src/testcordplugins/StreamQuality` in a TestCord checkout.
-2. Replace that directory's `index.tsx` with `src/index.ts` from this repository and copy `src/quality.ts` beside it. Rename `index.ts` to `index.tsx`.
-3. Build TestCord with `pnpm build`. Keep the existing plugin name so settings are preserved.
-4. Restart Discord when it is safe, then check the stream badge from a second account.
+In PowerShell, with a TestCord source checkout that has its dependencies installed:
 
-The plugin applies updated stream parameters when settings change. HDR capture changes apply to new screen shares.
-
-## Check
-
-From a TestCord checkout with dependencies installed, run:
-
-```sh
-node --import tsx --test path/to/CustomStreamQuality-UserPlugin/tests/quality.test.ts
+```powershell
+.\install.ps1 -TestCord "C:\path\to\TestCord"
 ```
 
-The tests cover the stream parameter hook, quality controls, disabled toggles, and 8K/360 advertisement with 1080p/60 encoding settings. They do not prove what a remote Discord client renders.
+The script backs up the existing `src\testcordplugins\StreamQuality` directory, copies in `src\index.tsx`, `src\quality.ts` and `src\patches.ts`, and runs `pnpm build`. Then fully quit Discord from the tray and start it again. Reloading with Ctrl+R keeps the old bundle.
 
-## Origin and license
+Enable Custom Stream Quality in TestCord's plugin settings. To check the badge, watch your stream from a second account.
 
-This replacement implements the same user facing idea and preserves TestCord's setting keys. It does not include code from TestCord's GPL licensed plugin. It is a new repository because a GitHub fork of the GPL source could not be relicensed under MIT.
+## Tests
+
+From the TestCord checkout:
+
+```sh
+npx tsx --test path/to/CustomStreamQuality-UserPlugin/tests/*.test.ts
+```
+
+`quality.test.ts` covers the settings logic, including 8K 360 on the badge while encoding stays at 1080p 60. `patches.test.ts` runs every patch against a Discord web bundle. Download the main `web.<hash>.js` from `https://discord.com/app` and point `DISCORD_BUNDLE` at it. The patch test is skipped when `DISCORD_BUNDLE` is unset. Neither test proves what a remote client renders.
+
+## License
+
+MIT. TestCord itself is GPL-3.0. This repository contains no code from TestCord's GPL plugin.
