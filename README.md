@@ -1,3 +1,6 @@
+> [!IMPORTANT]
+> This repository is archived. The plugin now lives in [DavidHiFi/Discord-Plugins](https://github.com/DavidHiFi/Discord-Plugins/tree/main/custom-stream-quality) with all of DavidHiFi's Discord plugins.
+
 # Custom Stream Quality for TestCord
 
 A TestCord plugin that sets your screen share's resolution, frame rate, bitrate, codec, keyframe interval and HDR capture. It can also show viewers a different resolution and frame rate on the stream badge, for example 8K 360 FPS while you actually stream 1080p 60.
